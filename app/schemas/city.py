@@ -19,6 +19,8 @@ class CityResponse(BaseModel):
     latitude: Decimal
     longitude: Decimal
     created_at: datetime
+    osm_id: int
+    osm_type: str
 
     model_config = ConfigDict(from_attributes=True)
 

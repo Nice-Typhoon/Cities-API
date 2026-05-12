@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends,Query,status
-
+from fastapi import APIRouter, Depends,Query,status, Path
+from typing import Annotated
 from app.core.dependencies import get_city_service
 from app.schemas.city import (
     CityCreate,
@@ -37,7 +37,7 @@ async def get_nearest_cities(
 
 @router.get("", response_model=list[CityResponse], summary="List all cities")
 async def list_cities(
-    offset: int = Query(0, ge=0),
+    offset: int = Query(0, ge=0, lt=2**63),
     limit: int = Query(100, ge=1, le=1000),
     service: CityService = Depends(get_city_service),
 ) -> list[CityResponse]:
@@ -47,7 +47,7 @@ async def list_cities(
 
 @router.get("/{city_id}", response_model=CityResponse, summary="Get a city by ID")
 async def get_city(
-    city_id: int,
+    city_id: Annotated[int, Path(gt=0, lt=2**63)],
     service: CityService = Depends(get_city_service),
 ) -> CityResponse:
     city = await service.get_city(city_id)
@@ -70,7 +70,7 @@ async def create_city(
 
 @router.delete("/{city_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a city")
 async def delete_city(
-    city_id: int,
+    city_id: Annotated[int, Path(gt=0, lt=2**63)],
     service: CityService = Depends(get_city_service),
 ) -> None:
     await service.remove_city(city_id)

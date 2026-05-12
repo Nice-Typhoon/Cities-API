@@ -36,8 +36,21 @@ class CityRepository:
         )
         return list(result.scalars().all())
 
-    async def if_exists(self, name: str) -> bool:
+    async def if_exists_by_name(self, name: str) -> bool:
         existing = await self.get_by_name(name)
+        if existing is not None:
+            return True
+
+        return False
+    
+    async def if_exists_by_osm_id_and_type(self, osm_id: int, osm_type: str) -> bool:
+        result = await self._session.execute(
+            select(City).where(
+                City.osm_id == osm_id,
+                City.osm_type == osm_type,
+            )
+        )
+        existing = result.scalar_one_or_none()
         if existing is not None:
             return True
 
@@ -48,9 +61,11 @@ class CityRepository:
         name: str,
         latitude: float,
         longitude: float,
+        osm_id: int,
+        osm_type: str,
     ) -> City:
 
-        city = City(name=name, latitude=latitude, longitude=longitude)
+        city = City(name=name, latitude=latitude, longitude=longitude, osm_id=osm_id, osm_type=osm_type)
         self._session.add(city)
         await self._session.flush()
         return city

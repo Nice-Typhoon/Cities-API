@@ -13,7 +13,7 @@ class Coordinates:
 
 
 class GeocodingService(Protocol):
-    async def geocode(self, city_name: str) -> Coordinates:
+    async def geocode(self, city_name: str) -> tuple[Coordinates, dict]:
         """Return coordinates for *city_name* or raise GeocodingError."""
         ...
 
@@ -31,7 +31,7 @@ class NominatimGeocodingService:
         self._client = client
         self._settings = settings
 
-    async def geocode(self, city_name: str) -> Coordinates:
+    async def geocode(self, city_name: str) -> tuple[Coordinates, dict]:
         try:
             response = await self._client.get(
                 f"{self._settings.geocoding_base_url}/search",
@@ -58,4 +58,4 @@ class NominatimGeocodingService:
         return Coordinates(
             latitude=float(first["lat"]),
             longitude=float(first["lon"]),
-        )
+        ), {'osm_id': first['osm_id'], 'osm_type': first['osm_type'], 'name': first['name']}

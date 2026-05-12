@@ -43,15 +43,22 @@ class CityService:
             GeocodingError: если внешний api не работает
             GeocodingNotFoundError: если по названию ничего не было найдено
         """
-        is_exists = await self._city_repo.if_exists(name)
+        is_exists = await self._city_repo.if_exists_by_name(name)
         if is_exists:
             raise CityAlreadyExistsError(name)
 
-        coordinates = await self._geocoding.geocode(name)
+        coordinates, data = await self._geocoding.geocode(name)
+
+        is_exists = await self._city_repo.if_exists_by_osm_id_and_type(data['osm_id'], data['osm_type'])
+        if is_exists:
+            raise CityAlreadyExistsError(name)
+
         return await self._city_repo.create(
-            name=name,
+            name=data['name'],
             latitude=coordinates.latitude,
             longitude=coordinates.longitude,
+            osm_id=data['osm_id'],
+            osm_type=data['osm_type'],
         )
 
 

@@ -13,7 +13,7 @@ def upgrade() -> None:
 
     op.create_table(
         "cities",
-        sa.Column("id", sa.Integer(), primary_key=True),
+        sa.Column("id", sa.BigInteger(), primary_key=True),
         sa.Column("name", sa.String(255), nullable=False, unique=True),
         sa.Column("latitude", sa.Numeric(9, 6), nullable=False),
         sa.Column("longitude", sa.Numeric(9, 6), nullable=False),
@@ -23,6 +23,8 @@ def upgrade() -> None:
             server_default=sa.func.now(),
             nullable=False,
         ),
+        sa.Column("osm_id", sa.BigInteger(), nullable=False),
+        sa.Column("osm_type", sa.String(), nullable=False),
     )
 
     #индекс
@@ -30,6 +32,12 @@ def upgrade() -> None:
         "ix_cities_name_lower",
         "cities",
         [sa.text("lower(name)")],
+    )
+
+    op.create_index(
+        "ix_cities_osm_id_type",
+        "cities",
+        ["osm_id", "osm_type"],
     )
 
     op.execute("""
@@ -51,4 +59,5 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("ix_cities_location_gist", table_name="cities")
     op.drop_index("ix_cities_name_lower", table_name="cities")
+    op.drop_index("ix_cities_osm_id_type", table_name="cities")
     op.drop_table("cities")
