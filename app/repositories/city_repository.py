@@ -36,6 +36,12 @@ class CityRepository:
         )
         return list(result.scalars().all())
 
+    async def if_exists(self, name: str) -> bool:
+        existing = await self.get_by_name(name)
+        if existing is not None:
+            return True
+
+        return False
 
     async def create(
         self,
@@ -43,9 +49,6 @@ class CityRepository:
         latitude: float,
         longitude: float,
     ) -> City:
-        existing = await self.get_by_name(name)
-        if existing is not None:
-            raise CityAlreadyExistsError(name)
 
         city = City(name=name, latitude=latitude, longitude=longitude)
         self._session.add(city)

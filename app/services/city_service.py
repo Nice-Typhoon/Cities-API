@@ -1,4 +1,4 @@
-from app.core.exceptions import CityNotFoundError
+from app.core.exceptions import CityAlreadyExistsError, CityNotFoundError
 from app.models.city import City
 from app.repositories.city_repository import CityRepository
 from app.repositories.geo_repository import GeoRepository, NearestCity
@@ -43,6 +43,10 @@ class CityService:
             GeocodingError: если внешний api не работает
             GeocodingNotFoundError: если по названию ничего не было найдено
         """
+        is_exists = await self._city_repo.if_exists(name)
+        if is_exists:
+            raise CityAlreadyExistsError(name)
+
         coordinates = await self._geocoding.geocode(name)
         return await self._city_repo.create(
             name=name,
